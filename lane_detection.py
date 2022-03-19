@@ -4,20 +4,26 @@ from os.path import isfile, join
 
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+from cv2 import IMREAD_GRAYSCALE
 from tqdm.notebook import tqdm_notebook
 
 
 def divide_video_into_frames():
-    vidcap = cv2.VideoCapture('video-trim.mp4')
+    capturedVideo = cv2.VideoCapture('video-trim.mp4')
     count = 0
-    while vidcap.isOpened() and count <= 500:
-        success, image = vidcap.read()
+    while capturedVideo.isOpened() and count <= 500:
+        success, frame = capturedVideo.read()
         if success:
-            cv2.imwrite("frames/frame%d.png" % count, image)  # save frame as JPEG file
-        success, image = vidcap.read()
-        print('Read a new frame: ', success)
+            frame_scaled = rescaleFrame(frame, 0.5)
+            cv2.imwrite("frames/frame%d.png" % count, frame_scaled)
         count += 1
+
+
+def rescaleFrame(frame, scale=0.75):
+    height = int(frame.shape[0] * scale)
+    width = int(frame.shape[1] * scale)
+    dimensions = (width, height)
+    return cv2.resize(frame, dimensions, interpolation=cv2.INTER_AREA)
 
 
 def load_sort_frames():
@@ -25,30 +31,28 @@ def load_sort_frames():
     col_frames.sort(key=lambda f: int(re.sub('\D', '', f)))
     col_images = []
     for i in tqdm_notebook(col_frames):
-        print(i)
-        img = cv2.imread('frames/' + i)
+        img = cv2.imread('frames/' + i, IMREAD_GRAYSCALE)
+        # uncomment below lines to see the frame images in gray scale
+        # cv2.imshow("display", img)
+        # cv2.waitKey(0)
         col_images.append(img)
 
-    idx = 0
-    plt.figure(figsize=(10, 10))
-    plt.imshow(col_images[idx][:, :, 0], cmap="gray")
-    plt.show()
     return col_images
 
 
 def masking_lane_detection_writing(col_images):
-    idx = 0
-    stencil = np.zeros_like(col_images[idx][:, :, 0])
+    stencil = np.zeros_like(col_images[0][:, :])
     # specify coordinates of the polygon
-    polygon = np.array([[200, 750], [600, 450], [950, 450], [1300, 750]])
+    polygon = np.array([[200, 400], [300, 225], [500, 225], [550, 400]])
     # fill polygon with ones
     cv2.fillConvexPoly(stencil, polygon, 1)
-    plt.figure(figsize=(10, 10))
-    plt.imshow(stencil, cmap="gray")
-    plt.show()
+    # uncomment to show the polygon
+    # plt.figure(figsize=(10, 10))
+    # plt.imshow(stencil, cmap="gray")
+    # plt.show()
     cnt = 0
     for img in tqdm_notebook(col_images):
-        masked = cv2.bitwise_and(img[:, :, 0], img[:, :, 0], mask=stencil)
+        masked = cv2.bitwise_and(img[:, :], img[:, :], mask=stencil)
         ret, thresh = cv2.threshold(masked, 130, 145, cv2.THRESH_BINARY)
         lines = cv2.HoughLinesP(thresh, 1, np.pi / 180, 30, maxLineGap=200)
         dmy = img.copy()
@@ -63,24 +67,23 @@ def masking_lane_detection_writing(col_images):
 
 
 def video_from_detected():
-    pathIn = 'detected/'
-    pathOut = 'lane_detected.mp4'
+    path_in = 'detected/'
+    path_out = 'lane_detected.mp4'
     fps = 30.0
-    files = [f for f in os.listdir(pathIn) if isfile(join(pathIn, f))]
+    files = [f for f in os.listdir(path_in) if isfile(join(path_in, f))]
     files.sort(key=lambda f: int(re.sub('\D', '', f)))
     frame_list = []
 
     for i in tqdm_notebook(range(len(files))):
-        filename = pathIn + files[i]
+        filename = path_in + files[i]
         img = cv2.imread(filename)
         height, width, layers = img.shape
         size = (width, height)
         frame_list.append(img)
 
-    out = cv2.VideoWriter(pathOut, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
+    out = cv2.VideoWriter(path_out, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
 
     for i in range(len(frame_list)):
-        # writing to a image array
         out.write(frame_list[i])
 
     out.release()
