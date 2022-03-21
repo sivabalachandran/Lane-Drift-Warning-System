@@ -95,7 +95,7 @@ def video_from_detected():
 
 
 if __name__ == "__main__":
-    # divide_video_into_frames()
+    divide_video_into_frames()
     col_images = load_sort_frames()
     masking_lane_detection_writing(col_images)
     video_from_detected()
