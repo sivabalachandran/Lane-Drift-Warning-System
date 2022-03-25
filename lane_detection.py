@@ -46,6 +46,8 @@ def masking_lane_detection_writing(col_images):
     # fill polygon with ones
     cv2.fillConvexPoly(mask, polygon, 1)
     cnt = 0
+    leftLaneCount = 0
+    rightLaneCount = 0
     for img in tqdm_notebook(col_images):
         masked = cv2.bitwise_and(img, img, mask=mask)
         ret, thresh = cv2.threshold(masked, 130, 255, cv2.THRESH_BINARY)
@@ -58,10 +60,18 @@ def masking_lane_detection_writing(col_images):
                 x1, y1, x2, y2 = line[0]
                 slope = (y2 - y1) / (x2 - x1)
                 if slope > 0.4:
-                    print("right lane")
+                    # print("right lane")
+                    leftLaneCount = 0
+                    rightLaneCount = rightLaneCount + 1
                 elif slope < -0.4:
-                    print("left lane")
+                    # print("left lane")
+                    rightLaneCount = 0
+                    leftLaneCount = leftLaneCount + 1
                 cv2.line(dmy, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                if rightLaneCount > 20 or leftLaneCount > 20:
+                    print('Drift Detected')
+                    cv2.putText(dmy, 'Drifting', (50, 50), color=(0, 0, 0), lineType=cv2.LINE_AA,
+                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=2)
                 # cv2.imshow("img", dmy)
                 # cv2.waitKey(0)
             cv2.imwrite('detected/' + str(cnt) + '.png', dmy)
