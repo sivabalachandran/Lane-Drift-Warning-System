@@ -5,7 +5,6 @@ from os.path import isfile, join
 import cv2
 import numpy as np
 from cv2 import IMREAD_GRAYSCALE
-from tqdm.notebook import tqdm_notebook
 
 
 def divide_video_into_frames():
@@ -32,7 +31,7 @@ def load_sort_frames():
     col_frames = os.listdir('frames/')
     col_frames.sort(key=lambda f: int(re.sub('\D', '', f)))
     col_images = []
-    for i in tqdm_notebook(col_frames):
+    for i in col_frames:
         img = cv2.imread('frames/' + i, IMREAD_GRAYSCALE)
         col_images.append(img)
 
@@ -46,39 +45,46 @@ def masking_lane_detection_writing(col_images):
     # fill polygon with ones
     cv2.fillConvexPoly(mask, polygon, 1)
     cnt = 0
-    leftLaneCount = 0
-    rightLaneCount = 0
-    for img in tqdm_notebook(col_images):
+    for img in col_images:
         masked = cv2.bitwise_and(img, img, mask=mask)
         ret, thresh = cv2.threshold(masked, 130, 255, cv2.THRESH_BINARY)
-        # cv2.imshow("Threshold", thresh)
-        # cv2.waitKey(0)
-        lines = cv2.HoughLinesP(thresh, 1, np.pi / 180, 30, maxLineGap=200)
-        dmy = img.copy()
+        lines = cv2.HoughLinesP(thresh, 1, np.pi / 180, 30, maxLineGap=20)
+        image_copy = img.copy()
         try:
             for line in lines:
                 x1, y1, x2, y2 = line[0]
-                slope = (y2 - y1) / (x2 - x1)
-                if slope > 0.4:
-                    # print("right lane")
-                    leftLaneCount = 0
-                    rightLaneCount = rightLaneCount + 1
-                elif slope < -0.4:
-                    # print("left lane")
-                    rightLaneCount = 0
-                    leftLaneCount = leftLaneCount + 1
-                cv2.line(dmy, (x1, y1), (x2, y2), (255, 0, 0), 3)
-                if rightLaneCount > 20 or leftLaneCount > 20:
-                    print('Drift Detected')
-                    cv2.putText(dmy, 'Drifting', (50, 50), color=(0, 0, 0), lineType=cv2.LINE_AA,
-                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, thickness=2)
-                # cv2.imshow("img", dmy)
-                # cv2.waitKey(0)
-            cv2.imwrite('detected/' + str(cnt) + '.png', dmy)
-
+                if x2 - x1 != 0:
+                    slope = (y2 - y1) / (x2 - x1)
+                else:
+                    slope = 0
+                cv2.line(image_copy, (x1, y1), (x2, y2), (255, 0, 0), 3)
+                if slope == 1 or slope == -1:
+                    alert_driver(image_copy, slope)
+            cv2.imwrite('detected/' + str(cnt) + '.png', image_copy)
+            # cv2.imshow("img", image_copy)
+            # cv2.waitKey(0)
         except TypeError:
             cv2.imwrite('detected/' + str(cnt) + '.png', img)
         cnt += 1
+
+
+def alert_driver(img_cpy, slope):
+    cv2.putText(img_cpy,
+                str(slope),
+                (100, 100),
+                color=(0, 0, 0),
+                lineType=cv2.LINE_AA,
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                thickness=2)
+    cv2.putText(img_cpy,
+                'Alert !!!',
+                (50, 50),
+                color=(0, 0, 0),
+                lineType=cv2.LINE_AA,
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=1,
+                thickness=2)
 
 
 def video_from_detected():
@@ -89,7 +95,7 @@ def video_from_detected():
     files.sort(key=lambda f: int(re.sub('\D', '', f)))
     frame_list = []
 
-    for i in tqdm_notebook(range(len(files))):
+    for i in range(len(files)):
         filename = path_in + files[i]
         img = cv2.imread(filename)
         height, width, layers = img.shape
