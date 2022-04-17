@@ -24,15 +24,20 @@ The main objective of the project is to detect lanes and warn driver when the ve
 - For each frame do the following pre-processing 
    - Scale it down for faster processing. The image frame can be converted to grey scale as well, but for better visualization I have kept in 3 channel colors.
    - Yolo object detection. I have used a pre-trained model here in this project which does a pretty good of detecting objects and I have set the threshold to 0.5 which means it will box the objects only if the confidence level is more than 0.5.
-   - Yolo Object detection at a glance can be viewed [here](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/yolo.png).
+   ![Yolo Object detection](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/yolo.png)
+   
    - Create area of interest (AOI) polygon aka mask.
    - Apply the mask on the frame. This helps to avoid noise and detect lanes in the AOI.
    - Apply thresholding to detect lanes.
    - Hough transformation to create right and left lanes from the thresolded image.
-   - A sample frame with detected lanes and a point indicating the car center can viewed [here](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/carcenter-with-lanes.png).
+   - A sample frame with detected lanes and a point indicating the car center can be seen below. 
+      ![Frame with car center and lanes marked](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/carcenter-with-lanes.png)      
+      
    - Calculate slope of the lanes to detect drifts. 
    - Alert when the drift count meets a threshold.
-   - A sample frame with drift alert can be seen [here](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/drift-alert.png).
+   - A sample frame with drift alert can be seen below
+      ![Drift alert](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/drift-alert.png).
+   
 - Stictch frames to make a outout video.
 
 ## Output
