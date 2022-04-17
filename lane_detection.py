@@ -16,12 +16,16 @@ def masking_lane_detection_writing(col_images):
     drift_count = 0
     yolo_transform_instance = Transformer()
     for img in col_images:
+        # Masking, Thresholding and Lane created using Hough transform
         masked = cv2.bitwise_and(img[:, :, 0], img[:, :, 0], mask=mask)
         ret, thresh = cv2.threshold(masked, 130, 145, cv2.THRESH_BINARY)
-
         lines = cv2.HoughLinesP(thresh, 1, np.pi / 180, 30, maxLineGap=20)
+
         image_copy = img.copy()
+        # Object detection using YOLO.
         image_copy = yolo_transform_instance.yolo_transform(image_copy)
+
+        # Attach car center
         processor.car_center(image_copy)
         try:
             for line in lines:

@@ -20,7 +20,7 @@ class Processor:
     def divide_video_into_frames(self):
         captured_video = cv2.VideoCapture(self.input_video)
         count = 0
-        while captured_video.isOpened() and count <= 5000:
+        while captured_video.isOpened() and count <= 10000:
             success, frame = captured_video.read()
             if success:
                 frame_scaled = self.rescale_convert_frame(frame, 0.5)
