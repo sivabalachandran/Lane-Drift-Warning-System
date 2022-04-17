@@ -7,7 +7,7 @@ import cv2
 
 class Processor:
     def __init__(self):
-        self.input_video = 'input-fixed.mp4'
+        self.input_video = 'input.mp4'
         self.lane_color = (48, 111, 178)
         self.lane_thickness = 3
         self.car_center_text_position = (370, 340)
@@ -47,7 +47,7 @@ class Processor:
     def video_from_detected(self):
         print("Video stitching from the processed frames started")
         path_in = 'detected/'
-        path_out = 'lane_detected.mp4'
+        path_out = 'output.mp4'
         fps = 30.0
         files = [f for f in os.listdir(path_in) if isfile(join(path_in, f))]
         files.sort(key=lambda f: int(re.sub('\D', '', f)))
