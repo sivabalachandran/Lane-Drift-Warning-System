@@ -4,11 +4,10 @@ from os.path import isfile, join
 
 import cv2
 import numpy as np
-from cv2 import IMREAD_GRAYSCALE
 
 
 def divide_video_into_frames():
-    capturedVideo = cv2.VideoCapture('video-trim-longer.mp4')
+    capturedVideo = cv2.VideoCapture('input-fixed.mp4')
     count = 0
     while capturedVideo.isOpened() and count <= 5000:
         success, frame = capturedVideo.read()
@@ -22,9 +21,7 @@ def rescale_cnvrt_Frame(frame, scale=0.75):
     height = int(frame.shape[0] * scale)
     width = int(frame.shape[1] * scale)
     dimensions = (width, height)
-    img = cv2.resize(frame, dimensions, interpolation=cv2.INTER_AREA)
-    gry_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    return gry_img
+    return cv2.resize(frame, dimensions, interpolation=cv2.INTER_AREA)
 
 
 def load_sort_frames():
@@ -32,59 +29,70 @@ def load_sort_frames():
     col_frames.sort(key=lambda f: int(re.sub('\D', '', f)))
     col_images = []
     for i in col_frames:
-        img = cv2.imread('frames/' + i, IMREAD_GRAYSCALE)
+        img = cv2.imread('frames/' + i)
         col_images.append(img)
 
     return col_images
 
 
 def masking_lane_detection_writing(col_images):
-    mask = np.zeros(col_images[0].shape[:2], dtype='uint8')
+    mask = np.zeros_like(col_images[0][:, :, 0])
     # specify coordinates of the polygon
     polygon = np.array([[100, 400], [300, 225], [500, 225], [700, 400]])
     # fill polygon with ones
     cv2.fillConvexPoly(mask, polygon, 1)
     cnt = 0
+    drift_count = 0
+    car_pos = (400, 360)
+    pixel_to_meter = 0.0002645833
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_color = (0, 0, 255)
+    font_size = 0.5
     for img in col_images:
-        masked = cv2.bitwise_and(img, img, mask=mask)
-        ret, thresh = cv2.threshold(masked, 130, 255, cv2.THRESH_BINARY)
+        masked = cv2.bitwise_and(img[:, :, 0], img[:, :, 0], mask=mask)
+        ret, thresh = cv2.threshold(masked, 130, 145, cv2.THRESH_BINARY)
+
         lines = cv2.HoughLinesP(thresh, 1, np.pi / 180, 30, maxLineGap=20)
         image_copy = img.copy()
         try:
             for line in lines:
                 x1, y1, x2, y2 = line[0]
+
                 if x2 - x1 != 0:
                     slope = (y2 - y1) / (x2 - x1)
                 else:
                     slope = 0
-                cv2.line(image_copy, (x1, y1), (x2, y2), (255, 0, 0), 3)
-                if slope == 1 or slope == -1:
-                    alert_driver(image_copy, slope)
+
+                cv2.line(image_copy, (x1, y1), (x2, y2), (0, 0, 255), 3)
+
+                if slope > 0.95 or slope < -0.95:
+                    drift_count += 1
+                else:
+                    drift_count = 0
+
+                if drift_count >= 5:
+                    alert_driver(image_copy)
+
+            cv2.putText(image_copy, 'car center', (370, 340), font, font_size, font_color, 1)
+            cv2.circle(image_copy, car_pos, radius=10, color=(0, 255, 0), thickness=-1)
             cv2.imwrite('detected/' + str(cnt) + '.png', image_copy)
-            # cv2.imshow("img", image_copy)
-            # cv2.waitKey(0)
         except TypeError:
             cv2.imwrite('detected/' + str(cnt) + '.png', img)
         cnt += 1
 
 
-def alert_driver(img_cpy, slope):
+def alert_driver(img_cpy):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_color = (0, 0, 255)
+    font_size = 0.5
+
     cv2.putText(img_cpy,
-                str(slope),
-                (100, 100),
-                color=(0, 0, 0),
-                lineType=cv2.LINE_AA,
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1,
-                thickness=2)
-    cv2.putText(img_cpy,
-                'Alert !!!',
-                (50, 50),
-                color=(0, 0, 0),
-                lineType=cv2.LINE_AA,
-                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=1,
-                thickness=2)
+                'Drift Alert !!!',
+                (350, 320),
+                color=font_color,
+                fontFace=font,
+                fontScale=font_size,
+                thickness=1)
 
 
 def video_from_detected():
