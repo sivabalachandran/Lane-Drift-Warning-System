@@ -16,6 +16,7 @@ class Processor:
         self.font_color = (7, 120, 242)
         self.font_size = 0.5
         self.alert = self.rescale_convert_frame(cv2.imread('alert-icon.png'), scale=0.10)
+        self.collision = self.rescale_convert_frame(cv2.imread('collision.jpeg'), scale=0.10)
 
     def divide_video_into_frames(self):
         captured_video = cv2.VideoCapture(self.input_video)
@@ -76,3 +77,7 @@ class Processor:
     def alert_driver(self, img):
         rows, cols, channels = self.alert.shape
         img[300:300 + rows, 390:390 + cols, :] = self.alert
+
+    def alert_driver_collision(self, img):
+        rows, cols, channels = self.collision.shape
+        img[270:270 + rows, 390:390 + cols, :] = self.collision

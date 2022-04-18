@@ -24,7 +24,10 @@ def masking_lane_detection_writing(col_images):
         image_copy = img.copy()
         # Object detection using YOLO.
         image_copy = yolo_transform_instance.yolo_transform(image_copy)
-
+        # detect for collision
+        collision = yolo_transform_instance.detect_for_collision(image_copy)
+        if collision:
+            processor.alert_driver_collision(image_copy)
         # Attach car center
         processor.car_center(image_copy)
         try:
