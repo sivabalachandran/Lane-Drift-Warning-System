@@ -26,6 +26,10 @@ The main objective of the project is to detect lanes and warn driver when the ve
    - Yolo object detection. I have used a pre-trained model here in this project which does a pretty good of detecting objects and I have set the threshold to 0.5 which means it will box the objects only if the confidence level is more than 0.5.
    ![Yolo Object detection](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/yolo.png)
    
+   - Collision detection using YOLO object detection. This is achieved by using a tunneled vision in front of the vehicle to narrow down and avoid cars in other lanes being flagged.
+   
+   ![Collision detection](https://github.com/sivabalachandran/Lane-Drift-Warning-System/blob/main/collision-sample.png)
+   
    - Create area of interest (AOI) polygon aka mask.
    - Apply the mask on the frame. This helps to avoid noise and detect lanes in the AOI.
    - Apply thresholding to detect lanes.
