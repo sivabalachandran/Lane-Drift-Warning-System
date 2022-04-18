@@ -46,6 +46,6 @@ The main objective of the project is to detect lanes and warn driver when the ve
 
 ## Output
 
-Output of the processing is a video, but can made real time. For the purpose of the project output frames are stictched together to make it a video. Here is the link to the [output](https://kennesawedu-my.sharepoint.com/:v:/g/personal/sbalacha_students_kennesaw_edu/EWppMRHtFp5OoS9Gdhxew38BVhwHarWYc--kvVdgIhn5gQ?email=skhandav%40students.kennesaw.edu&e=RdmH0G).
+Output of the processing is a video, but can made real time. For the purpose of the project output frames are stictched together to make it a video. Here is the link to the [output](https://kennesawedu-my.sharepoint.com/:v:/r/personal/sbalacha_students_kennesaw_edu/Documents/output%201.mp4?csf=1&web=1&e=ZLOupT).
 
 **Note**: Output video is terrible when you view directly on sharepoint. Please download for a better quality.
